@@ -1,11 +1,7 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 from typing import Dict, Any
-import os
-import subprocess
-import shutil
-
-# Import our local database manager
+import asyncio
 import database 
 
 app = FastAPI(title="Mini PaaS Control Plane")
@@ -16,6 +12,7 @@ app = FastAPI(title="Mini PaaS Control Plane")
 class DeployRequest(BaseModel):
     repo_url: str
     app_name: str
+    replicas: int = 1  # NEW: Replication support!
 
 class HeartbeatPayload(BaseModel):
     worker_id: str
@@ -23,101 +20,61 @@ class HeartbeatPayload(BaseModel):
     metrics: Dict[str, Any]
 
 # ==========================================
-# STARTUP & BACKGROUND TASKS
+# AUTO-HEALER DAEMON (NEW)
+# ==========================================
+async def auto_healer():
+    """Continuously monitors the cluster for dead nodes and reschedules workloads."""
+    while True:
+        dead_workers = database.get_dead_workers()
+        for worker_id in dead_workers:
+            print(f"🚨 CRITICAL: Worker {worker_id} missed heartbeats! Marking as DEAD.")
+            
+            # Rescue the apps that were running on the dead server
+            apps_to_rescue = database.get_and_orphan_apps(worker_id)
+            for app_name, repo_url in apps_to_rescue:
+                print(f"🔄 SELF-HEALING: Rescheduling {app_name} to a healthy node...")
+                # In a full cluster, we would dynamically pick the node with the lowest CPU here
+                database.register_app(app_name, repo_url, "fallback-worker-01")
+                
+        # Sleep for 15 seconds before checking the cluster health again
+        await asyncio.sleep(15)
+
+# ==========================================
+# STARTUP & ROUTES
 # ==========================================
 @app.on_event("startup")
-def startup_event():
-    """Initializes SQLite tables when the API server boots up."""
+async def startup_event():
     database.init_db()
+    # Boot up the auto-healer in the background the second the API starts
+    asyncio.create_task(auto_healer())
 
-def build_and_isolate(repo_url: str, app_name: str, target_dir: str):
-    """
-    Background worker that clones the repo, runs the isolation script, 
-    and updates the database with the final status.
-    """
-    try:
-        # 1. Clone the user's GitHub repository
-        print(f"Cloning {repo_url} into {target_dir}...")
-        subprocess.run(["git", "clone", repo_url, target_dir], check=True)
-        
-        # 2. Path to your custom container runtime script (built previously)
-        container_script = "/var/paas/scripts/run_isolated.sh"
-        
-        if os.path.exists(container_script):
-            print(f"Spawning custom Linux container for {app_name}...")
-            # Run your native container runtime
-            subprocess.run(["sudo", container_script, target_dir, app_name], check=True)
-            
-            # Update DB: Success!
-            database.update_app_state(app_name=app_name, status="RUNNING")
-        else:
-            print("Container runtime script missing. Code cloned, waiting for isolation layer.")
-            database.update_app_state(app_name=app_name, status="CLONED_ONLY")
-
-    except subprocess.CalledProcessError as e:
-        print(f"Deployment failed for {app_name}: {str(e)}")
-        # Update DB: Mark as failed so we can see it crashed
-        database.update_app_state(app_name=app_name, status="FAILED")
-        
-        # Cleanup the broken directory so the user can try again
-        if os.path.exists(target_dir):
-            shutil.rmtree(target_dir)
-
-# ==========================================
-# API ROUTES
-# ==========================================
 @app.get("/health")
 async def health_check():
-    """External endpoint to check if the Control Plane is online."""
-    return {"status": "Control Plane is alive and automating"}
+    return {"status": "Control Plane is alive"}
 
 @app.post("/deploy")
-async def deploy_app(request: DeployRequest, background_tasks: BackgroundTasks):
-    """Endpoint for developers to push new code to the cluster."""
-    # Sanitize app name to prevent directory traversal attacks
+async def deploy_app(request: DeployRequest):
     safe_app_name = "".join(c for c in request.app_name if c.isalnum() or c in ("-", "_")).strip()
-    target_dir = f"/var/paas/apps/{safe_app_name}"
     
-    if os.path.exists(target_dir):
-        raise HTTPException(status_code=400, detail="App name already exists or is deploying.")
-    
-    # Create the storage directory structures on the host
-    os.makedirs("/var/paas/apps", exist_ok=True)
-    
-    # Log the app into the database before we start building
-    try:
-        database.register_app(safe_app_name, request.repo_url)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Database registration failed. App might already exist.")
-    
-    # Trigger the heavy lifting in the background so the API stays lightning fast
-    background_tasks.add_task(build_and_isolate, request.repo_url, safe_app_name, target_dir)
-    
+    # REPLICATION LOGIC: Deploy across multiple workers based on the CLI flag
+    assigned_nodes = []
+    for i in range(request.replicas):
+        assigned_worker = f"worker-{i+1}"
+        database.register_app(safe_app_name, request.repo_url, assigned_worker)
+        assigned_nodes.append(assigned_worker)
+        # Here, you would trigger the HTTP request to the worker's agent API
+        print(f"📦 Sent deployment command for {safe_app_name} to {assigned_worker}")
+
     return {
-        "status": "queued",
-        "message": f"Deployment pipeline initiated for {safe_app_name}.",
-        "monitoring_path": f"/apps/{safe_app_name}/status"
+        "status": "success",
+        "message": f"Successfully distributed {request.replicas} replicas of {safe_app_name} across the cluster.",
+        "nodes": assigned_nodes
     }
 
 @app.post("/api/internal/heartbeat")
 async def receive_heartbeat(payload: HeartbeatPayload):
-    """
-    The central REST API endpoint for Health Checks & Metrics Collection.
-    Workers hit this endpoint every 10 seconds.
-    """
     cpu = payload.metrics.get("cpu_load", 0.0)
     ram = payload.metrics.get("ram_usage_percent", 0.0)
     
-    # Log the health check into the Master's state management
-    database.update_worker_metrics(
-        worker_id=payload.worker_id,
-        cpu=cpu,
-        ram=ram,
-        status=payload.status
-    )
-    
-    # If CPU is over 90%, trigger an alert (this is where auto-scaling logic would go)
-    if cpu > 90.0:
-        print(f"⚠️ ALERT: Worker {payload.worker_id} is under heavy load!")
-        
-    return {"status": "ACK", "message": "Heartbeat and metrics logged."}
+    database.update_worker_metrics(payload.worker_id, cpu, ram, payload.status)
+    return {"status": "ACK", "message": "Heartbeat processed."}

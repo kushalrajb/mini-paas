@@ -94,55 +94,44 @@ mini-paas/
 └── README.md
 ```
 ## 🚀 Key Features & Execution Guide
->  💻 KUSHALCLOUD: FEATURES & EXECUTION WALKTHROUGH
->  Prerequisites: Must run on a native Linux environment (Ubuntu/Debian) 
-> # with sudo privileges. Required Linux features: cgroups, namespaces, 
-> # filesystem mounts, veth networking.
->
-> # --- Step 1: Clone Repository ---
-> git clone https://github.com/kushalrajb/mini-paas.git
-> cd mini-paas
->
-> # --- Step 2: Install Dependencies ---
-> pip install -r requirements.txt
->
-> # --- Step 3: Prepare Host Directories and Scripts ---
-> sudo mkdir -p /var/paas/apps
-> sudo mkdir -p /var/paas/volumes
-> sudo mkdir -p /var/paas/scripts
-> sudo cp scripts/run_isolated.sh /var/paas/scripts/
-> sudo chmod +x /var/paas/scripts/run_isolated.sh
-> sudo chown -R $USER:$USER /var/paas
->
-> # --- Step 4: Start Control Plane ---
-> # [Feature Implemented: Live Dashboard & Hardware Telemetry]
-> # This initializes the state database, auto-healer daemon, and exposes:
-> # - Metrics endpoint (Prometheus/Grafana): http://localhost:8000/metrics
-> # - Live Web Dashboard: http://localhost:8000/dashboard
-> uvicorn main:app --host 0.0.0.0 --port 8000 &
->
-> # --- Step 5: Validate Cluster Health ---
-> python cli.py health
->
-> # --- Step 6: Distributed Deployment ---
-> # [Feature Implemented: Distributed Scaling]
-> # The scheduler will automatically distribute replicas across healthy workers
-> python cli.py deploy https://github.com/kushalrajb/sample-web-app my-test-app --replicas 3
->
-> # --- Step 7: Load Balancing Validation ---
-> # [Feature Implemented: Dynamic Load Balancing]
-> # NGINX dynamically updates upstream routing. Behind the scenes, traffic 
-> # distribution uses round-robin balancing similar to this generated config:
-> # upstream myapp {
-> #     server worker1:8080;
-> #     server worker2:8080;
-> #     server worker3:8080;
-> # }
->
-> # --- Step 8: Persistent Volumes Validation ---
-> # [Feature Implemented: Persistent Storage]
-> # Even if a container crashes, the storage controller preserves Databases, 
-> # Logs, and App state using secure Linux bind mounts automatically.
+
+```bash
+# KUSHALCLOUD: FEATURES & EXECUTION WALKTHROUGH
+# Prerequisites: Must run on a native Linux environment (Ubuntu/Debian)
+# with sudo privileges. Required Linux features: cgroups, namespaces,
+# filesystem mounts, veth networking.
+
+# --- Step 1: Clone Repository ---
+git clone [https://github.com/kushalrajb/mini-paas.git](https://github.com/kushalrajb/mini-paas.git)
+cd mini-paas
+
+# --- Step 2: Install Dependencies ---
+pip install -r requirements.txt
+
+# --- Step 3: Prepare Host Directories and Scripts ---
+sudo mkdir -p /var/paas/apps
+sudo mkdir -p /var/paas/volumes
+sudo mkdir -p /var/paas/scripts
+sudo cp scripts/run_isolated.sh /var/paas/scripts/
+sudo chmod +x /var/paas/scripts/run_isolated.sh
+
+# ... [PASTE YOUR STEPS 4, 5, AND 6 HERE] ...
+
+# --- Step 7: Load Balancing Validation ---
+# [Feature Implemented: Dynamic Load Balancing]
+# NGINX dynamically updates upstream routing. Behind the scenes, traffic
+# distribution uses round-robin balancing similar to this generated config:
+# upstream myapp {
+#     server worker1:8080;
+#     server worker2:8080;
+#     server worker3:8080;
+# }
+
+# --- Step 8: Persistent Volumes Validation ---
+# [Feature Implemented: Persistent Storage]
+# Even if a container crashes, the storage controller preserves Databases,
+# Logs, and App state using secure Linux bind mounts automatically.
+```
 
 ---
 

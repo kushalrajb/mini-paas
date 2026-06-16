@@ -93,45 +93,57 @@ mini-paas/
 │
 └── README.md
 ```
-## 🚀 Key Features & Execution Guide
+## 💻 How to Run It (Step-by-Step)
+
+**Prerequisites:** You must run this on a **Linux machine** (Ubuntu/Debian recommended) because the platform natively interacts with the Linux kernel (cgroups/namespaces).
+
+### Step 1: Clone & Setup Dependencies
+Clone the repository and install the Python dependencies for the Control Plane.
 
 ```bash
-# KUSHALCLOUD: FEATURES & EXECUTION WALKTHROUGH
-# Prerequisites: Must run on a native Linux environment (Ubuntu/Debian)
-# with sudo privileges. Required Linux features: cgroups, namespaces,
-# filesystem mounts, veth networking.
-
-# --- Step 1: Clone Repository ---
 git clone [https://github.com/kushalrajb/mini-paas.git](https://github.com/kushalrajb/mini-paas.git)
 cd mini-paas
-
-# --- Step 2: Install Dependencies ---
 pip install -r requirements.txt
+```
 
-# --- Step 3: Prepare Host Directories and Scripts ---
+### Step 2: Prepare the Host System
+Because this platform manages system-level networking and storage, it needs the correct directory structures created on the host server.
+
+```bash
+# Create the primary PaaS directories
 sudo mkdir -p /var/paas/apps
 sudo mkdir -p /var/paas/volumes
 sudo mkdir -p /var/paas/scripts
+
+# Copy the core engine script to the host environment
 sudo cp scripts/run_isolated.sh /var/paas/scripts/
 sudo chmod +x /var/paas/scripts/run_isolated.sh
 
-# ... [PASTE YOUR STEPS 4, 5, AND 6 HERE] ...
-
-# --- Step 7: Load Balancing Validation ---
-# [Feature Implemented: Dynamic Load Balancing]
-# NGINX dynamically updates upstream routing. Behind the scenes, traffic
-# distribution uses round-robin balancing similar to this generated config:
-# upstream myapp {
-#     server worker1:8080;
-#     server worker2:8080;
-#     server worker3:8080;
-# }
-
-# --- Step 8: Persistent Volumes Validation ---
-# [Feature Implemented: Persistent Storage]
-# Even if a container crashes, the storage controller preserves Databases,
-# Logs, and App state using secure Linux bind mounts automatically.
+# Grant permission to the local user
+sudo chown -R $USER:$USER /var/paas
 ```
+
+### Step 3: Boot the Control Plane
+Start the Master Node API. This will automatically initialize the SQLite database, boot the Auto-Healer daemon, and expose the UI.
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+### Step 4: Use the Developer CLI
+Open a new terminal tab (leave the Master Node running) and use the CLI to interact with your cluster.
+
+```bash
+# 1. Check if the Control Plane is healthy
+python cli.py health
+
+# 2. Deploy a sample application with multiple replicas
+python cli.py deploy [https://github.com/kushalrajb/sample-web-app](https://github.com/kushalrajb/sample-web-app) my-test-app --replicas 3
+```
+
+### Step 5: Monitor the Cluster
+ Admin Dashboard (UI): Open your browser and navigate to ⁠http://localhost:8000/dashboard⁠ to see containers spinning up and live node health.
+ Raw Metrics: Navigate to ⁠http://localhost:8000/metrics⁠ to view the Prometheus-compatible hardware telemetry.
 
 ---
 

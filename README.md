@@ -1,4 +1,4 @@
-# ☁️ KushalCloud — Native Linux PaaS from Scratch
+# ☁️ K-Space Orchestrator -- Native Linux PaaS from Scratch
 
 **Architect:** Kushal Raj B | Cloud & DevOps Engineer
 

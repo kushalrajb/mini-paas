@@ -94,8 +94,8 @@ mini-paas/
 └── README.md
 ```
 ## 🚀 Key Features & Execution Guide
-> # 💻 KUSHALCLOUD: FEATURES & EXECUTION WALKTHROUGH
-> # Prerequisites: Must run on a native Linux environment (Ubuntu/Debian) 
+>  💻 KUSHALCLOUD: FEATURES & EXECUTION WALKTHROUGH
+>  Prerequisites: Must run on a native Linux environment (Ubuntu/Debian) 
 > # with sudo privileges. Required Linux features: cgroups, namespaces, 
 > # filesystem mounts, veth networking.
 >

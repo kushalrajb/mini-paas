@@ -101,7 +101,7 @@ mini-paas/
 Clone the repository and install the Python dependencies for the Control Plane.
 
 ```bash
-git clone https://github.com/kushalrajb/mini-paas.git (https://github.com/kushalrajb/mini-paas.git)
+git clone https://github.com/kushalrajb/mini-paas.git
 cd mini-paas
 pip install -r requirements.txt
 ```
@@ -138,7 +138,7 @@ Open a new terminal tab (leave the Master Node running) and use the CLI to inter
 python cli.py health
 
 # 2. Deploy a sample application with multiple replicas
-python cli.py deploy https://github.com/kushalrajb/sample-web-app(https://github.com/kushalrajb/sample-web-app) my-test-app --replicas 3
+python cli.py deploy https://github.com/kushalrajb/sample-web-app my-test-app --replicas 3
 ```
 
 ### Step 5: Monitor the Cluster

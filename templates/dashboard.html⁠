@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KushalCloud Control Plane</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-white font-sans p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 flex items-center tracking-tight">
+            ☁️ KushalCloud 
+            <span class="ml-4 text-xs bg-blue-600 px-3 py-1 rounded-full uppercase tracking-widest font-semibold">Master Node</span>
+        </h1>
+
+        <h2 class="text-xl font-semibold mb-4 border-b border-gray-800 pb-2">Cluster Health (Workers)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {% for node in nodes %}
+            <div class="bg-gray-900 p-6 rounded-xl shadow-lg border border-gray-800">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold font-mono text-gray-300">{{ node[0] }}</h3>
+                    {% if node[3] == 'HEALTHY' %}
+                        <span class="text-green-400 text-xs font-bold px-2 py-1 bg-green-900/30 border border-green-800 rounded">HEALTHY</span>
+                    {% else %}
+                        <span class="text-red-400 text-xs font-bold px-2 py-1 bg-red-900/30 border border-red-800 rounded">DEAD</span>
+                    {% endif %}
+                </div>
+                <div class="space-y-2">
+                    <p class="text-sm text-gray-500">CPU Load: <span class="text-gray-200 font-mono">{{ node[1] }}</span></p>
+                    <p class="text-sm text-gray-500">RAM Usage: <span class="text-gray-200 font-mono">{{ node[2] }}%</span></p>
+                </div>
+                <p class="text-xs text-gray-600 mt-4">Last Pulse: {{ node[4] }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h2 class="text-xl font-semibold mb-4 border-b border-gray-800 pb-2">Active Workloads (Containers)</h2>
+        <div class="bg-gray-900 rounded-xl shadow-lg border border-gray-800 overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-black/50 text-gray-400 text-xs uppercase tracking-wider">
+                        <th class="p-4 border-b border-gray-800">App Name</th>
+                        <th class="p-4 border-b border-gray-800">Repository</th>
+                        <th class="p-4 border-b border-gray-800">Assigned Node</th>
+                        <th class="p-4 border-b border-gray-800">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm">
+                    {% for app in apps %}
+                    <tr class="hover:bg-gray-800/50 transition-colors">
+                        <td class="p-4 border-b border-gray-800 font-bold text-gray-200">{{ app[1] }}</td>
+                        <td class="p-4 border-b border-gray-800 text-blue-400 font-mono text-xs">{{ app[2] }}</td>
+                        <td class="p-4 border-b border-gray-800 text-gray-400 font-mono">{{ app[3] }}</td>
+                        <td class="p-4 border-b border-gray-800">
+                            <span class="text-blue-400 text-xs font-bold px-2 py-1 bg-blue-900/30 border border-blue-800 rounded">{{ app[4] }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

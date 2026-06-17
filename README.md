@@ -143,7 +143,7 @@ python cli.py deploy https://github.com/kushalrajb/sample-web-app my-test-app --
 
 ### Step 5: Monitor the Cluster
  Admin Dashboard (UI): Open your browser and navigate to ⁠http://localhost:8000/dashboard⁠ to see containers spinning up and live node health.
- Raw Metrics: Navigate to ⁠http://localhost:8000/metrics⁠ to view the Prometheus-compatible hardware telemetry.
+Raw Metrics: Navigate to ⁠http://localhost:8000/metrics⁠ to view the Prometheus-compatible hardware telemetry.
 
 ---
 

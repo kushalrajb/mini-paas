@@ -53,7 +53,7 @@ Each worker node executes workloads inside isolated runtime environments using L
 **Execution engine:** `scripts/run_isolated.sh`
 
 ### 3. Cluster Networking (Veth + NGINX)
-KushalCloud implements custom internal networking using Linux Virtual Ethernet pairs. Each workload receives an internal IP from `10.0.1.0/24`.
+K-Space implements custom internal networking using Linux Virtual Ethernet pairs. Each workload receives an internal IP from `10.0.1.0/24`.
 
 **Traffic flow:**
 1. External client sends request

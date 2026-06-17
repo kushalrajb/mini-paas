@@ -8,7 +8,7 @@
 
 Modern cloud deployments rely heavily on managed orchestration platforms such as Kubernetes, Docker Swarm, and Heroku. While these systems abstract away infrastructure complexity, they often hide the core operating system and distributed systems concepts responsible for workload orchestration.
 
-**KushalCloud** is a lightweight, distributed Platform-as-a-Service (PaaS) built entirely from scratch using native Linux primitives and custom orchestration logic. 
+**K-Space** is a lightweight, distributed Platform-as-a-Service (PaaS) built entirely from scratch using native Linux primitives and custom orchestration logic. 
 
 This platform **does not depend on Docker or Kubernetes**. Instead, it implements core cloud orchestration capabilities manually, including workload scheduling, process isolation, networking, replication, health monitoring, and self-healing infrastructure.
 
@@ -24,7 +24,7 @@ The project demonstrates deep understanding of:
 
 ## ⚙️ Core Architecture & Mechanics
 
-KushalCloud consists of four major subsystems:
+K-Space consists of four major subsystems:
 
 ### 1. Control Plane (FastAPI Master Node)
 The control plane acts as the brain of the cluster. 
